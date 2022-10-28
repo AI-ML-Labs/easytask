@@ -8,7 +8,7 @@ from .Task import Task
 T = TypeVar('T')
 
 class TaskSet(Generic[T]):
-    
+
     def __init__(self, name : str = None):
         """
         Provides a set of Tasks.
@@ -21,7 +21,7 @@ class TaskSet(Generic[T]):
 
     def finalize(self):
         """
-        Finalize TaskSet. Cancel all tasks. 
+        Finalize TaskSet. Cancel all tasks.
         New Tasks that are added to TaskSet using yield will be automatically canceled.
         """
         if get_log_level() >= 2:
@@ -52,7 +52,7 @@ class TaskSet(Generic[T]):
         for task in tasks:
             task.cancel()
 
-    
+
     def add(self, task : Task[T], remove_on_done=False) -> bool:
         """add Task, returns True if success"""
         with task._lock:
@@ -62,13 +62,13 @@ class TaskSet(Generic[T]):
                     if tasks is not None:
                         if task not in tasks:
                             tasks.add(task)
-                            
+
                         if remove_on_done:
                             task.call_on_done(self.remove)
-                            
+
                         return True
         return False
-        
+
     def remove(self, task : Task[T]):
         """"""
         with task._lock:
@@ -76,8 +76,8 @@ class TaskSet(Generic[T]):
                 tasks = self._tasks
                 if tasks is not None and task in tasks:
                     tasks.remove(task)
-                
-        
+
+
     def fetch(self, done=None, success=None) -> Deque[Task[T]]:
         """
         fetch Task's from TaskSet with specific conditions
@@ -93,7 +93,7 @@ class TaskSet(Generic[T]):
         if both args None, fetches all tasks.
         """
         out_tasks = deque()
-        
+
         with self._lock:
             for task in self._tasks:
                 if  (done    is None or done    == task.is_done()) and \

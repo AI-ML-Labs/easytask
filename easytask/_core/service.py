@@ -11,8 +11,7 @@ def clear():
             break
         thread = threads[0]
         thread.finalize()
-    
+
     while len(Task._active_tasks) != 0:
         for task in tuple(Task._active_tasks):
             task.cancel()
-    

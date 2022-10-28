@@ -5,12 +5,11 @@ from .debug import print_debug_info
 from .decorators import taskmethod
 from .exceptions import ETaskDone
 from .log import get_log_level, set_log_level
-from .Section import Section
 from .service import clear
 from .Task import Task, get_current_task
 from .TaskSet import TaskSet
 from .Thread import Thread, get_current_thread
-from .yields import (yield_add_to, yield_cancel, yield_enter, yield_leave,
+from .yields import (yield_add_to, yield_cancel, yield_lock, yield_unlock,
                      yield_propagate, yield_sleep, yield_sleep_tick,
                      yield_success, yield_switch_thread, yield_wait)
 
@@ -21,7 +20,6 @@ class easytask:
     Task = Task
     Thread = Thread
     TaskSet = TaskSet
-    Section = Section
     ETaskDone = ETaskDone
 
     get_current_thread = get_current_thread
@@ -29,8 +27,8 @@ class easytask:
     print_debug_info = print_debug_info
     taskmethod = taskmethod
 
-    yield_enter = yield_enter
-    yield_leave = yield_leave
+    yield_lock = yield_lock
+    yield_unlock = yield_unlock
     yield_cancel = yield_cancel
     yield_propagate = yield_propagate
     yield_add_to = yield_add_to
@@ -241,33 +239,34 @@ def done_exception():
     return True
 
 @easytask.taskmethod()
-def exclusive_section_task_0(thread, section, value, is_leave, N) -> easytask.Task:
+def exclusive_section_task_0(thread, lock, value, is_leave, N) -> easytask.Task:
     yield easytask.yield_switch_thread(thread)
 
-    yield easytask.yield_enter(section)
+    yield easytask.yield_lock(lock)
     for _ in range(N):
         value[0] = value[0] + 1
         yield easytask.yield_sleep_tick()
 
+    # Test autounlock on task done
     if is_leave:
-        yield easytask.yield_leave(section)
+        yield easytask.yield_unlock(lock)
 
 
 @easytask.taskmethod()
-def section_task() -> easytask.Task:
+def lock_task() -> easytask.Task:
     value = [0]
-    section = easytask.Section()
+    lock = threading.Lock()
 
     I = 10
     N = 10
     threads = [ easytask.Thread(name=f'thread_{i}') for i in range(I) ]
-    tasks = [ exclusive_section_task_0(threads[i], section, value, i % 2 == 0, N) for i in range(I) ]
+    tasks = [ exclusive_section_task_0(threads[i], lock, value, i % 2 == 0, N) for i in range(I) ]
     yield easytask.yield_wait(tasks)
     [thread.finalize() for thread in threads]
     return value[0] == I*N
 
-def section():
-    return section_task().wait().result()
+def lock():
+    return lock_task().wait().result()
 
 @easytask.taskmethod()
 def child_tasks_task_2() -> easytask.Task:
@@ -305,7 +304,7 @@ def run_test():
     tests = [simple_return, branch_true_1, branch_false_cancel,
              sleep_1, propagate, wait_multi, child_tasks, taskset, taskset_fetch,
              compute_in_single_thread, thread, multi_thread,
-             done_exception, section]
+             done_exception, lock]
 
     tests_result = []
 
