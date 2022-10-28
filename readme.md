@@ -14,6 +14,8 @@ Requirement: Python 3.6+
 ## Learn quickly from examples.
     
 ```python
+import easytask
+
 @easytask.taskmethod()  # makes method easytask.Task
 def main_task() -> easytask.Task[str]: # annotate that Task returns str
     yield easytask.yield_sleep(1.0) # while Task sleep, other Tasks in Thread will work
