@@ -8,16 +8,12 @@ from .Thread import Thread
 
 
 class yield_add_to:
-    def __init__(self, ts : Taskset, remove_parent = True):
+    def __init__(self, ts : Taskset):
         """
         Add current Task to Taskset.
         If Taskset is finalized, current Task will be cancelled without exception.
-
-            remove_parent(True)     parent from Task will be removed.
-                                    It's mean when parent Task is cancelled, this Task will continue work.
         """
         self._ts = ts
-        self._remove_parent = remove_parent
 
 class yield_success:
     def __init__(self, result = None):

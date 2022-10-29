@@ -27,8 +27,6 @@ class Task(Generic[T]):
         self._state = Task._State.ACTIVE
         self._executor = None
         self._parent : Task = None
-        self._child_tasks = set()  # add - accessed inside Task._lock
-                                   # remove - no lock
 
         Task._active_tasks.add(self)
         
@@ -125,10 +123,9 @@ class Task(Generic[T]):
         with self._lock:
             with self._done_lock:
                 if self._state == Task._State.ACTIVE:
-                    child_tasks = tuple(self._child_tasks)
 
                     if get_log_level() >= 2:
-                        print(f"{('Finishing'):12} {self} Child tasks:[{len(child_tasks)}]")
+                        print(f"{('Finishing'):12} {self}")
 
                     if success:
                         self._result = result
@@ -136,9 +133,6 @@ class Task(Generic[T]):
                     else:
                         self._exception = exception
                         self._state = Task._State.CANCELLED
-
-                    for child_task in child_tasks:
-                        child_task.cancel()
 
                     if self._parent is not None:
                         self._parent._child_tasks.remove(self)

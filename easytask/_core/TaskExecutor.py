@@ -92,12 +92,6 @@ class TaskExecutor:
         task = self._task
 
         if yield_value._ts.add(task, remove_on_done=True):
-
-            if yield_value._remove_parent:
-                if task._parent is not None:
-                    task._parent._child_tasks.remove(task)
-                    task._parent = None
-
             self._continue_execution = True
         else:
             task.cancel()
