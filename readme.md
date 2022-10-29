@@ -30,7 +30,6 @@ if __name__ == '__main__':
     print( t.result() ) # Hello world. Caller time 1667033110.0105093
 ```
 
-
 ```python
 import easytask
 
@@ -100,8 +99,8 @@ def main_task() -> easytask.Task:
     """    
 ```
 
-Tasks can be cancelled for any reason.
-If you have an external resource, such as a file, it must be closed correctly when you cancel/success a task for any reason.
+### Tasks can be cancelled for any reason.
+### If you have an external resource, such as a file, it must be closed correctly when you cancel/success a task for any reason.
 ```python
 import easytask
 import io
@@ -149,3 +148,58 @@ def main_task() -> easytask.Task:
     yield easytask.yield_sleep(1)
     t.cancel()
 ```
+
+```python
+
+import easytask
+
+@easytask.taskmethod() 
+def compute_task(n : int) -> easytask.Task[int]:
+    # Each compute_task spawns its own physical python thread and switches to it
+    sub_thread = easytask.Thread()
+    
+    try:
+        yield easytask.yield_switch_thread(sub_thread)
+        
+        # Compute in sub thread and in a single task in this thread.
+        
+        yield easytask.yield_success(n*n)
+    except easytask.ETaskDone:
+        ...
+        
+    sub_thread.finalize()
+    
+@easytask.taskmethod() 
+def main_task() -> easytask.Task: 
+    # Run multiple tasks
+    tasks = [ compute_task(i) for i in range(4) ]
+    
+    # Wait for all tasks in current task
+    yield easytask.yield_wait(tasks)
+    
+    for task in tasks:
+        print(f'Result: {task.result()}')
+    """
+    Result: 0
+    Result: 1
+    Result: 4
+    Result: 9
+    """
+```
+
+### Only one task in a thread is executed at a time
+
+<img src="doc\slide_0.png"></img>
+
+### In this way, you can use a thread to access shared data securely.
+
+```python
+...
+
+yield easytask.yield_switch_thread(data_thread)
+shared_data += 1
+
+...
+```
+
+

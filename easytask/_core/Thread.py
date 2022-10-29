@@ -53,9 +53,9 @@ class Thread:
                 print(f"{('Finalizing'):12} {self}")
 
             if self.is_created():
+                # Don't wait if we request finalize being in the thread
                 if threading.get_ident() != self._ident:
                     self._finalized_ev.wait()
-
             else:
                 if threading.get_ident() != self._ident:
                     raise Exception('non-created Thread.finalize() must be called from the same OS thread.')
