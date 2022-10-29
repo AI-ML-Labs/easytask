@@ -74,9 +74,8 @@ def compute_task(i) -> easytask.Task:
     if i == 0:
         # Cancelling Task with optional exception
         yield easytask.yield_cancel( ValueError('0 is not allowed') )
-
-    yield easytask.yield_success(i*i)
-    # ^ same as return i*i, but you can finish Task at any place
+    
+    yield easytask.yield_success(i*i) # same as return i*i
     
 
 @easytask.taskmethod() 
@@ -99,4 +98,52 @@ def main_task() -> easytask.Task:
     Success result: 4
     Success result: 9
     """    
+```
+
+Tasks can be cancelled for any reason.
+If you have an external resource, such as a file, it must be closed correctly when you cancel/success a task for any reason.
+```python
+import easytask
+import io
+
+@easytask.taskmethod() 
+def file_task() -> easytask.Task:
+    file = None
+    
+    try:
+        # Do some work
+        yield easytask.yield_sleep_tick()
+        ...
+        yield easytask.yield_sleep_tick()
+        ...
+        
+        # Now we decide to open a file
+        file = io.StringIO()
+        
+        # Work with file ...
+        yield easytask.yield_sleep(100.0)
+        
+        if 'something' == 'wrong':
+            # Something goes wrong? Cancel this task.
+            yield easytask.yield_cancel()
+        
+        if 'enough':
+            # Done this task at any place.
+            yield easytask.yield_success()
+    
+    except easytask.ETaskDone:
+        # Handling Task done event. 
+        ...
+        
+    # This code will be executed anyway.
+    if file is not None:
+        file.close()
+
+@easytask.taskmethod() 
+def main_task() -> easytask.Task: 
+    t = file_task()
+        
+    # Cancel file task after 1 sec
+    yield easytask.yield_sleep(1)
+    t.cancel()
 ```
