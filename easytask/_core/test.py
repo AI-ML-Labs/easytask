@@ -7,7 +7,7 @@ from .exceptions import ETaskDone
 from .log import get_log_level, set_log_level
 from .service import clear
 from .Task import Task, get_current_task
-from .TaskSet import TaskSet
+from .Taskset import Taskset
 from .Thread import Thread, get_current_thread
 from .yields import (yield_add_to, yield_cancel, yield_propagate, yield_sleep,
                      yield_sleep_tick, yield_success, yield_switch_thread,
@@ -19,7 +19,7 @@ class easytask:
 
     Task = Task
     Thread = Thread
-    TaskSet = TaskSet
+    Taskset = Taskset
     ETaskDone = ETaskDone
 
     get_current_thread = get_current_thread
@@ -162,7 +162,7 @@ def taskset_fetch_task_0() -> easytask.Task:
 
 @easytask.taskmethod()
 def taskset_fetch_task() -> easytask.Task:
-    ts = easytask.TaskSet()
+    ts = easytask.Taskset()
 
     for _ in range(32):
         ts.add ( taskset_fetch_task_0() )
@@ -181,13 +181,13 @@ def taskset_fetch():
     return taskset_fetch_task().wait().result()
 
 @easytask.taskmethod()
-def taskset_task(ts : easytask.TaskSet) -> easytask.Task:
+def taskset_task(ts : easytask.Taskset) -> easytask.Task:
     yield easytask.yield_add_to(ts)
 
     yield easytask.yield_sleep(999.0)
 
 def taskset():
-    ts = easytask.TaskSet('taskset_1')
+    ts = easytask.Taskset('taskset_1')
 
     t = taskset_task(ts)
 
@@ -214,6 +214,29 @@ def taskset():
 
     return True
 
+
+@easytask.taskmethod()
+def taskset_scope_task_1() -> easytask.Task:
+    yield easytask.yield_sleep(999.0)
+
+@easytask.taskmethod()
+def taskset_scope_task_0() -> easytask.Task:
+    taskset_scope_task_1()
+    yield easytask.yield_sleep(999.0)
+
+def taskset_scope():
+    ts = easytask.Taskset('task_set_1')
+
+    with ts.as_scope():
+        t1 = taskset_scope_task_0()
+
+    if ts.count() != 2:
+        return False
+
+    ts.cancel_all()
+
+    return not t1.is_succeeded()
+
 @easytask.taskmethod()
 def done_exception_task(ev) -> easytask.Task:
     try:
@@ -236,32 +259,6 @@ def done_exception():
         return False
     return True
 
-@easytask.taskmethod()
-def child_tasks_task_2() -> easytask.Task:
-    yield easytask.yield_sleep(999)
-
-@easytask.taskmethod()
-def child_tasks_task_1(task_ar) -> easytask.Task:
-    task_ar.append( child_tasks_task_2())
-    yield easytask.yield_sleep(999)
-
-@easytask.taskmethod()
-def child_tasks_task_0(task_ar) -> easytask.Task:
-    task_ar.append( child_tasks_task_1(task_ar))
-    yield easytask.yield_sleep(999)
-
-@easytask.taskmethod()
-def child_tasks_task() -> easytask.Task:
-    task_ar = []
-    t =  child_tasks_task_0(task_ar)
-    task_ar.append(t)
-    yield easytask.yield_sleep(0.5)
-    t.cancel()
-    return all(task.is_done() for task in task_ar)
-
-def child_tasks():
-    return child_tasks_task().wait().result()
-
 def run_test():
     """
     """
@@ -270,7 +267,7 @@ def run_test():
 
     clear()
     tests = [simple_return, branch_true_1, branch_false_cancel,
-             sleep_1, propagate, wait_multi, child_tasks, taskset, taskset_fetch,
+             sleep_1, propagate, wait_multi, taskset, taskset_fetch, taskset_scope,
              compute_in_single_thread, thread, multi_thread,
              done_exception]
 

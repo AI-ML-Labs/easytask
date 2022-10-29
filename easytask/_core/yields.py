@@ -3,15 +3,15 @@ from datetime import datetime
 from typing import Iterable, Set, Union
 
 from .Task import Task
-from .TaskSet import TaskSet
+from .Taskset import Taskset
 from .Thread import Thread
 
 
 class yield_add_to:
-    def __init__(self, ts : TaskSet, remove_parent = True):
+    def __init__(self, ts : Taskset, remove_parent = True):
         """
-        Add current Task to TaskSet.
-        If TaskSet is finalized, current Task will be cancelled without exception.
+        Add current Task to Taskset.
+        If Taskset is finalized, current Task will be cancelled without exception.
 
             remove_parent(True)     parent from Task will be removed.
                                     It's mean when parent Task is cancelled, this Task will continue work.

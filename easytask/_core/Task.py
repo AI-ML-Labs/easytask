@@ -31,17 +31,25 @@ class Task(Generic[T]):
                                    # remove - no lock
 
         Task._active_tasks.add(self)
-
+        
+        # prepare Set of unique Taskset where Task should be added
+        ts_scope = self._ts_scope = set()
+            
         tls = get_current_thread().get_tls()
-
+        if len(tls._ts_scope) != 0:
+            # Task created inside one or multiple Taskset.as_scope()
+            ts_scope.update(tls._ts_scope)
+            
         if len(tls._task_exec_stack) != 0:
             # Task created inside execution of other Task in current thread
-            # add to parent's child in order to be cancelled when parent is done.
-            # Parent is removed when Task added to TaskSet assuming TaskSet acquires control of Task
+            # get it's ts_scope and merge
             parent_task : Task = tls._task_exec_stack[-1]
-            parent_task._child_tasks.add(self)
-            self._parent = parent_task
-
+            ts_scope.update(parent_task._ts_scope)
+                        
+        # add to all Taskset's
+        for ts in ts_scope:
+            ts.add(self, remove_on_done=True)    
+            
         if get_log_level() >= 2:
             print(f"{('Starting'):12} {self}")
 
