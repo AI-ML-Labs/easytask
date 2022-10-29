@@ -1,7 +1,7 @@
 import threading
 from collections import deque
 from enum import Enum
-from typing import Any, Callable, Generic, TypeVar, Union
+from typing import Any, Callable, Generic, TypeVar, Union, Iterable
 
 from .log import get_log_level
 
@@ -26,7 +26,6 @@ class Task(Generic[T]):
         self._on_done_funcs = deque()      # accessed inside Task._done_lock only
         self._state = Task._State.ACTIVE
         self._executor = None
-        self._in_locks = deque()
         self._parent : Task = None
         self._child_tasks = set()  # add - accessed inside Task._lock
                                    # remove - no lock
@@ -49,6 +48,15 @@ class Task(Generic[T]):
     def get_name(self) -> str: return self._name
     def is_done(self) -> bool:        return self._state in (Task._State.SUCCEEDED, Task._State.CANCELLED)
     def is_succeeded(self) -> bool:   return self._state == Task._State.SUCCEEDED
+    def is_in_parents(self, task_or_list : Union['Task', Iterable['Task']]):
+        if not isinstance(task_or_list, Iterable):
+            task_or_list = (task_or_list,)
+
+        while self is not None:
+            if self in task_or_list:
+                return True
+            self = self._parent
+        return False
 
     def call_on_done(self, func : Callable[ ['Task'], None ]):
         """
@@ -120,9 +128,6 @@ class Task(Generic[T]):
                     else:
                         self._exception = exception
                         self._state = Task._State.CANCELLED
-
-                    for lock in self._in_locks:
-                        lock.release()
 
                     for child_task in child_tasks:
                         child_task.cancel()

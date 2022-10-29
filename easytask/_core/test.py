@@ -9,9 +9,9 @@ from .service import clear
 from .Task import Task, get_current_task
 from .TaskSet import TaskSet
 from .Thread import Thread, get_current_thread
-from .yields import (yield_add_to, yield_cancel, yield_lock, yield_unlock,
-                     yield_propagate, yield_sleep, yield_sleep_tick,
-                     yield_success, yield_switch_thread, yield_wait)
+from .yields import (yield_add_to, yield_cancel, yield_propagate, yield_sleep,
+                     yield_sleep_tick, yield_success, yield_switch_thread,
+                     yield_wait)
 
 
 class easytask:
@@ -27,8 +27,6 @@ class easytask:
     print_debug_info = print_debug_info
     taskmethod = taskmethod
 
-    yield_lock = yield_lock
-    yield_unlock = yield_unlock
     yield_cancel = yield_cancel
     yield_propagate = yield_propagate
     yield_add_to = yield_add_to
@@ -239,36 +237,6 @@ def done_exception():
     return True
 
 @easytask.taskmethod()
-def exclusive_section_task_0(thread, lock, value, is_leave, N) -> easytask.Task:
-    yield easytask.yield_switch_thread(thread)
-
-    yield easytask.yield_lock(lock)
-    for _ in range(N):
-        value[0] = value[0] + 1
-        yield easytask.yield_sleep_tick()
-
-    # Test autounlock on task done
-    if is_leave:
-        yield easytask.yield_unlock(lock)
-
-
-@easytask.taskmethod()
-def lock_task() -> easytask.Task:
-    value = [0]
-    lock = threading.Lock()
-
-    I = 10
-    N = 10
-    threads = [ easytask.Thread(name=f'thread_{i}') for i in range(I) ]
-    tasks = [ exclusive_section_task_0(threads[i], lock, value, i % 2 == 0, N) for i in range(I) ]
-    yield easytask.yield_wait(tasks)
-    [thread.finalize() for thread in threads]
-    return value[0] == I*N
-
-def lock():
-    return lock_task().wait().result()
-
-@easytask.taskmethod()
 def child_tasks_task_2() -> easytask.Task:
     yield easytask.yield_sleep(999)
 
@@ -304,7 +272,7 @@ def run_test():
     tests = [simple_return, branch_true_1, branch_false_cancel,
              sleep_1, propagate, wait_multi, child_tasks, taskset, taskset_fetch,
              compute_in_single_thread, thread, multi_thread,
-             done_exception, lock]
+             done_exception]
 
     tests_result = []
 

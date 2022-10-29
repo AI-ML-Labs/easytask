@@ -6,15 +6,6 @@ from .Task import Task
 from .TaskSet import TaskSet
 from .Thread import Thread
 
-class yield_lock:
-    def __init__(self, lock : threading.Lock):
-        """Acquire python threading.Lock object. Like any task, waiting Lock will not block the Thread."""
-        self._lock = lock
-
-class yield_unlock:
-    def __init__(self, lock : threading.Lock):
-        """Release python threading.Lock object."""
-        self._lock = lock
 
 class yield_add_to:
     def __init__(self, ts : TaskSet, remove_parent = True):

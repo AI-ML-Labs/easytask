@@ -5,9 +5,9 @@ from .exceptions import ETaskDone
 from .log import get_log_level
 from .Task import Task
 from .Thread import get_current_thread
-from .yields import (yield_add_to, yield_cancel, yield_lock, yield_unlock,
-                     yield_propagate, yield_sleep, yield_sleep_tick,
-                     yield_success, yield_switch_thread, yield_wait)
+from .yields import (yield_add_to, yield_cancel, yield_propagate, yield_sleep,
+                     yield_sleep_tick, yield_success, yield_switch_thread,
+                     yield_wait)
 
 
 class TaskExecutor:
@@ -139,18 +139,6 @@ class TaskExecutor:
         else:
             self._continue_execution = False
 
-    def _on_yield_lock(self, yield_value : yield_lock):
-        if yield_value._lock.acquire(blocking=False):
-            self._task._in_locks.append(yield_value._lock)
-            self._continue_execution = True
-        else:
-            self._continue_execution = False
-
-    def _on_yield_unlock(self, yield_value : yield_lock):
-        yield_value._lock.release()
-        self._task._in_locks.remove(yield_value._lock)
-        self._continue_execution = True
-
 
     _yield_to_func = {
             yield_add_to : _on_yield_add_to,
@@ -161,6 +149,4 @@ class TaskExecutor:
             yield_propagate : _on_yield_propagate,
             yield_sleep_tick : _on_yield_sleep_tick,
             yield_sleep : _on_yield_sleep,
-            yield_lock : _on_yield_lock,
-            yield_unlock : _on_yield_unlock,
         }
