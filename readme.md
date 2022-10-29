@@ -133,9 +133,11 @@ def file_task() -> easytask.Task:
     
     except easytask.ETaskDone:
         # Handling Task done event. 
+        # After that, you will no longer be able to use yield
         ...
         
-    # This code will be executed anyway.
+    # Code below will be executed in any case.
+    # Close file gracefully.
     if file is not None:
         file.close()
 
