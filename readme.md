@@ -101,7 +101,8 @@ def main_task() -> easytask.Task:
 ```
 Tasks can be cancelled for any reason.
 
-If you have an external resource, such as a file, it must be closed correctly when you cancel/success a task for any reason.
+If you have an external resource, such as a file, 
+it must be closed correctly when you cancel/success a task for any reason.
 ```
 ```python
 import easytask
