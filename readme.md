@@ -205,8 +205,6 @@ shared_data += 1
 ## Using in class.
 
 ```python
-## Using in Classes.
-
 class Bar():
     def __init__(self):
         # Taskset is used to collect tasks.
