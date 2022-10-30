@@ -202,4 +202,46 @@ shared_data += 1
 ...
 ```
 
+## Using in class.
 
+```python
+## Using in Classes.
+
+class Bar():
+    def __init__(self):
+        # Taskset is used to collect tasks.
+        self._ts = easytask.Taskset()
+        
+        # Spawn worker thread
+        self._worker_thread = easytask.Thread()
+        
+    def finalize(self):
+        # explicit Bar finalization
+        
+        # all tasks in Taskset will be cancelled
+        self._ts.finalize()
+        
+        # Tasks attached to worker_thread will also be cancelled.
+        self._worker_thread.finalize()
+        
+    @easytask.taskmethod()
+    def computation(self) -> easytask.Task:
+        # adding task to class taskset
+        yield easytask.yield_add_to(self._ts)
+        yield easytask.yield_switch_thread(self._worker_thread)
+        
+        while True:
+            # do some continuous work
+            yield easytask.yield_sleep_tick()
+        
+
+@easytask.taskmethod() 
+def main_task() -> easytask.Task: 
+    bar = Bar()
+    bar.computation()
+    
+    yield easytask.yield_sleep(2.0)
+
+    # After 2 sec we decide to finalize Bar
+    bar.finalize()
+```
