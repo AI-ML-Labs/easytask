@@ -98,9 +98,11 @@ def main_task() -> easytask.Task:
     Success result: 9
     """    
 ```
+```
+Tasks can be cancelled for any reason.
 
-### Tasks can be cancelled for any reason.
-### If you have an external resource, such as a file, it must be closed correctly when you cancel/success a task for any reason.
+If you have an external resource, such as a file, it must be closed correctly when you cancel/success a task for any reason.
+```
 ```python
 import easytask
 import io
@@ -186,12 +188,14 @@ def main_task() -> easytask.Task:
     Result: 9
     """
 ```
-
-### Only one task in a thread is executed at a time
-
+```
+Only one task in a thread is executed at a time
+```
 <img src="doc\slide_0.png"></img>
 
-### In this way, you can use a thread to access shared data securely.
+```
+In this way, you can use a thread to access shared data securely.
+```
 
 ```python
 ...
@@ -202,7 +206,9 @@ shared_data += 1
 ...
 ```
 
-## Using in class.
+``` 
+Using in class.
+```
 
 ```python
 class Bar():
