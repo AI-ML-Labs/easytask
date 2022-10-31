@@ -1,9 +1,6 @@
-from types import GeneratorType
+from .TaskMethod import TaskMethod
 
-from .Task import Task
-from .TaskExecutor import TaskExecutor
-
-
+        
 def taskmethod():
     """decorator.
 
@@ -32,18 +29,5 @@ def taskmethod():
     ```
     """
     def declaration_wrapper(method):
-
-        def method_wrapper(*args, **kwargs):
-            task = Task(name=f'{method.__qualname__}')
-
-            result = method(*args, **kwargs)
-            if isinstance(result, GeneratorType):
-                TaskExecutor(task, result)
-            else:
-                task.success(result)
-
-            return task
-
-        return method_wrapper
-
+        return TaskMethod(method)
     return declaration_wrapper
