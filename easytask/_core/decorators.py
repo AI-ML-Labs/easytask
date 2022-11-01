@@ -22,7 +22,9 @@ def taskmethod():
                 task.success(result)
 
             return task
-
+        
+        easytask_method._wrapped_method = method
+        
         return easytask_method
          
     return declaration_wrapper
