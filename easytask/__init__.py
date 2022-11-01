@@ -4,7 +4,6 @@ from ._core.exceptions import ETaskDone
 from ._core.log import get_log_level, set_log_level
 from ._core.service import clear
 from ._core.Task import Task, get_current_task
-from ._core.TaskMethod import TaskMethod
 from ._core.Taskset import Taskset
 from ._core.test import run_test
 from ._core.Thread import Thread, get_current_thread
