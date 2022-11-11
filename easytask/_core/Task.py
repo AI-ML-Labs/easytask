@@ -120,32 +120,33 @@ class Task(Generic[T]):
 
     def _done(self, success : bool, result = None, exception = None):
         on_done_funcs = None
-        with self._lock:
-            with self._done_lock:
-                if self._state == Task._State.ACTIVE:
+        if self._state == Task._State.ACTIVE:
+            with self._lock:
+                with self._done_lock:
+                    if self._state == Task._State.ACTIVE:
 
-                    if get_log_level() >= 2:
-                        print(f"{('Finishing'):12} {self}")
+                        if get_log_level() >= 2:
+                            print(f"{('Finishing'):12} {self}")
 
-                    if success:
-                        self._result = result
-                        self._state = Task._State.SUCCEEDED
-                    else:
-                        self._exception = exception
-                        self._state = Task._State.CANCELLED
+                        if success:
+                            self._result = result
+                            self._state = Task._State.SUCCEEDED
+                        else:
+                            self._exception = exception
+                            self._state = Task._State.CANCELLED
 
-                    if self._parent is not None:
-                        self._parent._child_tasks.remove(self)
-                        self._parent = None
+                        if self._parent is not None:
+                            self._parent._child_tasks.remove(self)
+                            self._parent = None
 
-                    on_done_funcs, self._on_done_funcs = self._on_done_funcs, None
-                    for func in on_done_funcs:
-                        func(self)
+                        on_done_funcs, self._on_done_funcs = self._on_done_funcs, None
+                        for func in on_done_funcs:
+                            func(self)
 
-                    Task._active_tasks.remove(self)
+                        Task._active_tasks.remove(self)
 
-                    if get_log_level() >= 2:
-                        print(f"{('Done'):12} {self}")
+                        if get_log_level() >= 2:
+                            print(f"{('Done'):12} {self}")
 
     def _exec(self):
         self._executor.exec()

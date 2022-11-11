@@ -65,7 +65,6 @@ class Thread:
             self._lock.release()
             self._finalized_ev.wait()
 
-
     def assert_current_thread(self):
         if threading.get_ident() != self._ident:
             raise Exception('Wrong current thread.')
@@ -106,6 +105,7 @@ class Thread:
         time_since_last_sleep = time.perf_counter()
 
         while not self._finalizing_ev.is_set():
+
             if condition is not None and condition():
                 break
 
@@ -146,7 +146,6 @@ class Thread:
         # Cancel remaining tasks registered in thread.
         for task in self._fetch_active_tasks(finalize=True):
             task.cancel()
-
         Thread._by_ident.pop(self._ident)
         ThreadLocalStorage._by_ident.pop(self._ident)
         self._finalized_ev.set()
